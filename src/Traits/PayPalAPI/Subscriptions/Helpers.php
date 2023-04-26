@@ -16,7 +16,7 @@ trait Helpers
     /**
      * @var int
      */
-    protected $payment_failure_threshold = 3;
+    protected $payment_failure_threshold = 1;
 
     /**
      * @var array
@@ -58,18 +58,20 @@ trait Helpers
      *
      * @param string $customer_name
      * @param string $customer_email
-     * @param string $start_date
+     * @param string $custom_id
+     * @param $start_date
      *
      * @throws Throwable
      *
      * @return array|\Psr\Http\Message\StreamInterface|string
      */
-    public function setupSubscription(string $customer_name, string $customer_email, string $start_date = '')
+   public function setupSubscription(string $customer_name, string $customer_email, string $custom_id, $start_date = null)
     {
         $start_date = !empty($start_date) ? Carbon::parse($start_date)->toIso8601String() : Carbon::now()->toIso8601String();
 
         $body = [
             'plan_id'    => $this->billing_plan['id'],
+            'custom_id' => $custom_id,
             'start_time' => $start_date,
             'quantity'   => 1,
             'subscriber' => [
@@ -79,6 +81,10 @@ trait Helpers
                 'email_address' => $customer_email,
             ],
         ];
+       
+        if ($start_date){
+            $body['start_time'] = isset($start_date) ? Carbon::parse($start_date)->toIso8601String() : Carbon::now()->toIso8601String();
+        }
 
         if ($this->has_setup_fee) {
             $body['plan'] = [
